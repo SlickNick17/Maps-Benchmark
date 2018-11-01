@@ -1,0 +1,183 @@
+import Foundation
+
+struct LinearMap<K: Hashable, V>: CustomStringConvertible{
+    var keys = [K]()
+    var values = [V]()
+    var count: Int = 0
+    fileprivate func findKeyIndex(_ k: K)->Int?{
+        var index: Int? = nil
+        for i in 0..<keys.count{
+            if keys[i] == k{
+                index = Optional(i)
+            }
+        }
+        return index
+    }
+    mutating func set(_ k: K, _ v: V){
+        if findKeyIndex(k) == nil{
+            keys.append(k)
+            count += 1
+        }
+        values.insert(v, at: findKeyIndex(k)!)
+    }
+    func get(_ k: K) -> V?{
+        guard findKeyIndex(k) != nil else{
+            return nil
+        }
+            return value[findKeyIndex(k)!]
+    }
+    var description: String{
+        var desc = ""
+        for i in 0..<count{
+            desc += "\(keys[i]) : \(values[i])\n"
+        }
+        return desc
+    }
+    subscript(_ k: K?)->V?{
+        get{
+            if k != nil{
+                return get(k!)
+            }
+            return nil
+        }
+        set(newValue){
+            if k != nil{
+                set(k!, newValue!)
+            }
+        }
+    }
+}
+struct BinaryMap<K: Comparable, V> : CustomStringConvertible{
+    var keys : [K] = []
+    var values : [V] = []
+
+    mutating func set(_ k : K, v : V){
+        var index = binarySearch(elements: keys, target: k)
+        if index == nil{
+            index = linearSearch(elements: keys, k)
+            keys.insert(k, at: index!)
+            values.insert(v, at: index!)
+        }
+            values[index!] = v
+    }
+    func get(_ k: K) -> V?{
+        if let index = binarySearch(elements: keys, target: k){
+            return values[index]
+        }
+        return nil
+    }
+    var count: Int{
+        return keys.count
+    }
+    var description: String{
+        var str = "[ \n"
+        for k in keys{
+            str += "\(k): \(get(k)!) \n"
+        }
+        return str + "]"
+    }
+    subscript(_ k: K) -> V?{
+        get{
+            if get(k) == nil{
+                return nil
+            }
+            return get(k)!
+        }
+        set(value){
+            return set(k, v: value!)
+        }
+    }
+}
+func linearSearch<K: Comparable>(elements: [K], _ k: K) -> Int{
+    var count = 0
+    if elements.isEmpty || k < elements[0]{
+        return 0
+    } else if k > elements[elements.count - 1] {
+        return elements.count
+    }
+    for elem in elements{
+        if elem < k{
+            count += 1
+        }
+    }
+    return count
+}
+func binarySearch<K: Comparable>(elements array: [K], target k: K) -> Int?{
+    var min = 0
+    var max = array.count - 1
+    while min <= max{
+        var mid = min + (max-min)/2
+        if k == array[mid]{
+            return mid
+        } else if k > array[mid] {
+            min = mid + 1
+        } else {
+            max = mid - 1
+        }
+    }
+    return nil
+}
+struct HashMap<K: Hashable, V> : CustomStringConvertible{
+    var keys = [K?]()
+    var values = [V?]()
+    var lm = LinearMap<K, V>()
+    var numberCollisions = 0
+    var size = 0
+    init(initialArraySize size : Int = 2000){
+        self.size = size
+        keys = Array(repeating: nil, count: size)
+        values = Array(repeating: nil, count: size)
+    }
+    func getNumberCollisions() -> Int {
+        return numberCollisions
+    }
+    mutating func set(_ k: K, v: V){
+        var ind = index(k)
+        if keys[ind] == k{
+            values[ind] = v
+        } else if keys[ind] == nil{
+            keys[ind] = k
+            values[ind] = v
+        } else {
+            lm.set(k, v: v)
+            numberCollisions += 1
+        }
+    }
+    mutating func get(_ k: K) -> V?{
+        var ind = index(k)
+        if keys[ind] == k{
+            return values[ind]
+        } else {
+            return lm.get(k)
+        }
+    }
+    var count : Int{
+        var key = keys.filter({$0 != nil})
+        return key.count + lm.count
+    }
+    func index(_ k: K) -> Int{
+        return abs(k.hashValue) % size
+    }
+    var description: String{
+        var str = "HashMap contents: [ \n"
+        for k in keys.filter({$0 != nil}){
+            str += "\(k!): \(values[index(k!)]!) \n"
+        }
+        str += "] \nLinear Map contents: ["
+        for k in lm.key{
+            str += "\(k): \(lm.get(k)) \n"
+        }
+        return str + "]"
+    }
+    subscript(_ k: K) -> V?{
+        mutating get{
+            if get(k) == nil{
+                return nil
+            }
+            return get(k)!
+        }
+        set(value){
+            return set(k, v: value!)
+        }
+    }
+}
