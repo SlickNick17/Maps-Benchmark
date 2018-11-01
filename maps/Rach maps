@@ -3,8 +3,8 @@ struct LinearMap<K: Hashable, V> : CustomStringConvertible{
     var value : [V] = []
     
     mutating func set(_ k: K, v: V){
-        key.append(k)
-        value.append(v)
+        key.insert(k, at: key.count - 1)
+        value.append(v, at: value.count - 1)
     }
     func get(_ k: K) -> V?{
         guard findKeyIndex(k) != nil else{
