@@ -1,9 +1,9 @@
-import Foundation
-
-struct LinearMap<K: Hashable, V>: CustomStringConvertible{
+class LinearMap<K: Hashable, V> : FakeMap<K, V>{
     var keys = [K]()
     var values = [V]()
-    var count: Int = 0
+    override var count: Int{
+        return keys.count
+    }
     fileprivate func findKeyIndex(_ k: K)->Int?{
         var index: Int? = nil
         for i in 0..<keys.count{
@@ -13,27 +13,26 @@ struct LinearMap<K: Hashable, V>: CustomStringConvertible{
         }
         return index
     }
-    mutating func set(_ k: K, _ v: V){
+    override func set(_ k: K, v: V){
         if findKeyIndex(k) == nil{
             keys.append(k)
-            count += 1
         }
         values.insert(v, at: findKeyIndex(k)!)
     }
-    func get(_ k: K) -> V?{
+    override func get(_ k: K) -> V?{
         guard findKeyIndex(k) != nil else{
             return nil
         }
-            return value[findKeyIndex(k)!]
+        return values[findKeyIndex(k)!]
     }
-    var description: String{
+    override var description: String{
         var desc = ""
         for i in 0..<count{
             desc += "\(keys[i]) : \(values[i])\n"
         }
         return desc
     }
-    subscript(_ k: K?)->V?{
+    override subscript(_ k: K?)->V?{
         get{
             if k != nil{
                 return get(k!)
@@ -42,41 +41,42 @@ struct LinearMap<K: Hashable, V>: CustomStringConvertible{
         }
         set(newValue){
             if k != nil{
-                set(k!, newValue!)
+                set(k!, v: newValue!)
             }
         }
     }
 }
-struct BinaryMap<K: Comparable, V> : CustomStringConvertible{
+
+class BinaryMap<K: Comparable, V> : FakeMap<K, V>{
     var keys : [K] = []
     var values : [V] = []
-
-    mutating func set(_ k : K, v : V){
+    
+    override func set(_ k : K, v : V){
         var index = binarySearch(elements: keys, target: k)
         if index == nil{
             index = linearSearch(elements: keys, k)
             keys.insert(k, at: index!)
             values.insert(v, at: index!)
         }
-            values[index!] = v
+        values[index!] = v
     }
-    func get(_ k: K) -> V?{
+    override func get(_ k: K) -> V?{
         if let index = binarySearch(elements: keys, target: k){
             return values[index]
         }
         return nil
     }
-    var count: Int{
+    override var count: Int{
         return keys.count
     }
-    var description: String{
+    override var description: String{
         var str = "[ \n"
         for k in keys{
             str += "\(k): \(get(k)!) \n"
         }
         return str + "]"
     }
-    subscript(_ k: K) -> V?{
+    override subscript(_ k: K) -> V?{
         get{
             if get(k) == nil{
                 return nil
@@ -117,7 +117,7 @@ func binarySearch<K: Comparable>(elements array: [K], target k: K) -> Int?{
     }
     return nil
 }
-struct HashMap<K: Hashable, V> : CustomStringConvertible{
+class HashMap<K: Hashable, V> : FakeMap<K, V>{
     var keys = [K?]()
     var values = [V?]()
     var lm = LinearMap<K, V>()
@@ -128,10 +128,10 @@ struct HashMap<K: Hashable, V> : CustomStringConvertible{
         keys = Array(repeating: nil, count: size)
         values = Array(repeating: nil, count: size)
     }
-    func getNumberCollisions() -> Int {
+    override func getNumberCollisions() -> Int {
         return numberCollisions
     }
-    mutating func set(_ k: K, v: V){
+    override func set(_ k: K, v: V){
         var ind = index(k)
         if keys[ind] == k{
             values[ind] = v
@@ -143,34 +143,35 @@ struct HashMap<K: Hashable, V> : CustomStringConvertible{
             numberCollisions += 1
         }
     }
-    mutating func get(_ k: K) -> V?{
+    override func get(_ k: K) -> V?{
         var ind = index(k)
         if keys[ind] == k{
             return values[ind]
         } else {
+            numberCollisions += 1
             return lm.get(k)
         }
     }
-    var count : Int{
+    override var count : Int{
         var key = keys.filter({$0 != nil})
         return key.count + lm.count
     }
     func index(_ k: K) -> Int{
         return abs(k.hashValue) % size
     }
-    var description: String{
+    override var description: String{
         var str = "HashMap contents: [ \n"
         for k in keys.filter({$0 != nil}){
             str += "\(k!): \(values[index(k!)]!) \n"
         }
         str += "] \nLinear Map contents: ["
-        for k in lm.key{
+        for k in lm.keys{
             str += "\(k): \(lm.get(k)) \n"
         }
         return str + "]"
     }
-    subscript(_ k: K) -> V?{
-        mutating get{
+    override subscript(_ k: K) -> V?{
+        get{
             if get(k) == nil{
                 return nil
             }
