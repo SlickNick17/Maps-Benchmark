@@ -1,0 +1,48 @@
+import Foundation
+
+func getCurrentMillis()->Int64{
+    return Int64(NSDate().timeIntervalSince1970 * 1000)
+}
+public class NaiveBenchmark{
+    var stringList = [String]()
+    let chars = Array("abcdefghijklmnopqrstuvwxyz".characters)
+    
+    let MAX_SIZE = 400000
+    let NUMBER_GETS = 200000
+    let NUMBER_PUTS = 200000
+    
+    var startTaskms: Int64 = 0
+    var endTaskms: Int64 = 0
+    
+    func startTimer(){
+        startTaskms = getCurrentMillis()
+    }
+    
+    func stopTimer(){
+        endTaskms = getCurrentMillis()
+    }
+    
+    func elapsedTimems()->Int{
+        return Int(endTaskms - startTaskms)
+    }
+    func elapsedTimeSeconds()->Int{
+        return elapsedTimems() / 1000
+    }
+    func elapsedTimeTenthsSeconds()->Int{
+        return elapsedTimems() / 100;
+    }
+    func benchmarkMessageTenths(mess: String){
+        print("\(mess) took \(elapsedTimeTenthsSeconds) tenths of second")
+    }
+    func getRandomInt(range: Int)->Int{
+        return Int(arc4random_uniform(UInt32(range)))
+    }
+    func makeString(length: Int)->String{
+        var s = ""
+        let numberChars = chars.count
+        for _ in 0..<length{
+            s.append(chars[getRandomInt(range: numberChars)])
+        }
+        return s;
+    }
+}
