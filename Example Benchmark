@@ -45,4 +45,65 @@ public class NaiveBenchmark{
         }
         return s;
     }
+    func getRandomInt(range: Int) -> Int{
+return Int(arc4random_uniform(UInt32(range)))
+}
+
+func makeString(length: Int) -> String{
+var s = “”
+let numberChars = chars.count
+for _ in 0..<length{
+s.append(chars[getRandomInt(range: numberChars)])
+}
+return s;
+}
+
+func makeStringList(size: Int){
+stringList = [String]()
+for _ in 0..<size{
+stringList.append(makeString(length: 10))
+}
+
+func doTest() -> Bool{
+makeStringList(size: MAX_ SIZE)
+print(“String List Complete“)
+var value = “”
+var key = “”
+let map = BinaryMap<String, String>()
+
+startTimer()
+for I in 0..<NUMBERPUTS {
+map.set(stringList[i], v: stringList[I]);
+}
+stopTimer()
+benchMarkMessageTenths(mess: “\(NUMBER_PUTS) put operations”);
+
+startTimer()
+
+for _ in 0..<NUMBER_GETS {
+index = getRandomInt(range: NUMBER_PUTS)
+key = stringList[index]
+value = met.get(key)!
+if (!(value == key)){
+return false;
+}
+}
+
+stopTimer();
+benchMarkMessageTenths(mess: “\(NUMBER_PUTS) put operations”);
+print(map.getNumberCollisions())
+return true;
+}
+
+func doBenchMark(){
+print(“Let’s go!”)
+let nb = NaiveBenchmark();
+if (nb.doTest()){
+print(“Map OK”);
+} else {
+print(“Map Bad”);
+}
+}
+
+doBenchMark()
 }
