@@ -1,0 +1,83 @@
+class Benchmark{
+    var stringList = [String]()
+    let chars = Array("abcdefghijklmnopqrstuvwxyz".characters)
+    let MAX_SIZE = 400000
+    var startTaskms: Int64 = 0
+    var endTaskms: Int64 = 0
+    func startTimer(){
+        startTaskms = getCurrentMillis()
+    }
+    func stopTimer(){
+        endTaskms = getCurrentMillis()
+    }
+    func elapsedTimems()->Int{
+        return Int(endTaskms - startTaskms)
+    }
+    func elapsedTimeSeconds()->Int{
+        return elapsedTimems() / 1000
+    }
+    func elapsedTimeTenthsSeconds()->Int{
+        return elapsedTimems() / 100;
+    }
+    func getRandomInt(range: Int)->Int{
+        return Int(arc4random_uniform(UInt32(range)))
+    }
+    func makeString(length: Int)->String{
+        var s = ""
+        let numberChars = chars.count
+        for _ in 0..<length{
+            s.append(chars[getRandomInt(range: numberChars)])
+        }
+        return s;
+    }
+    func makeStringList(size: Int)->[String]{
+        stringList = [String]()
+        for _ in 0..<size{
+            stringList.append(makeString(length: 10))
+        }
+        return stringList
+    }
+    func timeTest(elements: Int, mapType: Map)->Int{
+        let keys = makeStringList(size: elements)
+        let values = makeStringList(size: elements)
+        var map = LinearMap<String, String>() //defaults to LinearMap
+        if mapType == Map.Binary{
+            var map = BinaryMap<String, String>()
+        }
+        if mapType == Map.Hash{
+            var map = HashMap<String, String>()
+        }
+        startTimer()
+        for i in 0..<elements{
+            map.set(keys[i], v: values[i])
+        }
+        for i in 0..<elements{
+            map.get(keys[i])
+        }
+        stopTimer()
+        return elapsedTimems()
+    }
+    func doBenchmark(mapType: Map){
+        var initialElementCount = getRandomInt(range: 1000)
+        var elementCounts = [Int]()
+        var times = [Int]()
+        var elements: Int = 0
+        var counter: Int = 0
+        while elements <= 400{
+            elements = initialElementCount + 20*counter
+            elementCounts.append(elements)
+            times.append(timeTest(elements: elements, mapType: mapType))
+            counter += 1
+        }
+        let factor = times[1] / times[0]
+        var linearRelationship: Int = 0
+        for i in 0..<elementCounts.count - 1{
+            if Double(times[i] * factor) <= Double(times[i+1]) - /*error buffer*/ && Double(times[i] * factor) <= Double(times[i+1]) + /*error buffer*/{
+                linearRelationship += 1
+            }
+        }
+        if linearRelationship == elementCounts.count{
+            print("O(n)")
+        }
+    }
+}
