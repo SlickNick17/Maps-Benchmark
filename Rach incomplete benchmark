@@ -1,0 +1,116 @@
+import Cocoa
+
+func getCurrentMillis() -> Int64{
+    return Int64(NSDate().timeIntervalSince1970 * 1000)
+}
+public class BenchMark{
+    var stringList = [String]()
+    let chars = Array("abcdefghijklmnopqrstuvwxyz".characters)
+    
+    var startTaskms : Int64 = 0
+    var endTaskms : Int64 = 0
+    var set : Int
+    var get : Int
+    var size: Int
+    var map: FakeMap<String, String>
+    
+    init(setNum: Int, getNum: Int, size: Int, map: FakeMap<String, String>){
+        set = setNum; get = getNum
+        self.size = size
+        self.map = map
+    }
+    
+    func startTimer(){
+        startTaskms = getCurrentMillis()
+    }
+    func stopTimer(){
+        endTaskms = getCurrentMillis()
+    }
+    func elapsedTimes() -> (ms: Double, sec: Double, tenthssec: Double){
+        var ms = Double(endTaskms - startTaskms)
+        return (ms, ms * 1000, ms * 100)
+    }
+    func benchmarkMessage(mess: String){
+        var time = elapsedTimes()
+        print("\(mess) took \(time.ms) millis, \(time.sec) tenths of a sec, \(time.tenthssec) sec")
+    }
+    func getRandomInt(range: Int) -> Int{
+        return Int(arc4random_uniform(UInt32(range)))
+    }
+    
+    func makeString(length: Int) -> String{
+        var s = ""
+        let numberChars = chars.count
+        for _ in 0..<length{
+            s.append(chars[getRandomInt(range: numberChars)])
+        }
+        return s
+    }
+    func makeList(size: Int){
+        for _ in 0..<size{
+            stringList.insert(makeString(length: getRandomInt(range: 10)), at: stringList.count - 1)
+        }
+    }
+    
+    func average(times: [[Double]]) -> [Double]{
+        var averages = Array(repeating: 0.0, count: 6)
+        for time in times{
+            for nums in 0..<time.count{
+                averages[nums] += time[nums]
+            }
+        }
+        return averages.map{$0/Double(times.count)}
+    }
+    
+    func tooVaried(times: [[Double]]) -> Bool{
+        var index = 0
+        while index <= 6{
+            var eachTime = times.filter{}
+        }
+    }
+    
+    func benchmark() -> [Double]{
+        var result = [Double]()
+        makeList(size: size)
+        print("String List completed")
+        var key = " "
+        var value = " "
+        var index = 0
+        print("Testing with \(map.kind)")
+        
+        print("Benchmarking Sets")
+        startTimer()
+        for i in 0..<set{
+            map.set(stringList[i], v: stringList[i])
+        }
+        stopTimer()
+        benchmarkMessage(mess: "\(set) set operations")
+        result += [elapsedTimes().ms, elapsedTimes().sec, elapsedTimes().tenthssec]
+        
+        print("Benchmarking Gets")
+        startTimer()
+        for _ in 0..<get{
+            index = getRandomInt(range: set)
+            key = stringList[index]
+            value = map.get(key) as! String
+        }
+        stopTimer()
+        benchmarkMessage(mess: "\(get) set operations")
+        result += [elapsedTimes().ms, elapsedTimes().sec, elapsedTimes().tenthssec]
+        
+        return result
+    }
+    
+    func doTest(rep: Int = 3){
+        var results = [[Double]]()
+        print("Running the benchmark \(rep) times. We recommend over 3.")
+        for _ in 0..<rep{
+            results.append(benchmark())
+        }
+        print("Average times: \(average(times: results))")
+        print("Collisions: map.getNumberCollisions()")
+        
+    }
+    //reset stringList?
+    // make generic?
+}
