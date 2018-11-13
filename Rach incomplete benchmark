@@ -62,10 +62,23 @@ public class BenchMark{
         return averages.map{$0/Double(times.count)}
     }
     
+    //TOO REDUDANT, NEED TO FIX WITH INDEX IN THE FUNCTION SIGNATURE AND DO RECURSIVE?
     func tooVaried(times: [[Double]]) -> Bool{
-        var index = 0
-        while index <= 6{
-            var eachTime = times.filter{}
+        var array = [Double]()
+        for time in times{
+            array.append(time[0])
+        }
+        if array.max()! - array.min()! >= 5.0{
+            return true
+        } else {
+            array = []
+            for time in times{
+                array.append(time[3])
+            }
+            if array.max()! - array.min()! >= 5.0{
+                return true
+            }
+            return false
         }
     }
     
