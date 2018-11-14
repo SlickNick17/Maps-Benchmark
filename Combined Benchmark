@@ -1,0 +1,163 @@
+import Foundation
+import Cocoa
+
+func getCurrentMillis()->Int64{
+    return Int64(NSDate().timeIntervalSince1970 * 1000)
+}
+class Benchmark{
+    var stringList = [String]()
+    let chars = Array("abcdefghijklmnopqrstuvwxyz".characters)
+    var MAX_SIZE = 400
+    var startTaskms: Int64 = 0
+    var endTaskms: Int64 = 0
+    var size : Int
+    var map = FakeMap<String, String>()
+    var mapType: String
+    init(map: String){
+        self.mapType = map
+    }
+    func startTimer(){
+        startTaskms = getCurrentMillis()
+    }
+    func stopTimer(){
+        endTaskms = getCurrentMillis()
+    }
+    func elapsedTimes() -> (ms: Double, sec: Double, tenthssec: Double){
+        var ms = Double(endTaskms - startTaskms)
+        return (ms, ms * 1000, ms * 100)
+    }
+    func benchmarkMessage(mess: String){
+        var time = elapsedTimes()
+        print("\(mess) took \(time.ms) millis, \(time.sec) tenths of a sec, \(time.tenthssec) sec")
+    }
+    
+    func tooVaried(times: [[Double]]) -> Bool{
+        var array = [Double]()
+        for time in times{
+            array.append(time[0])
+        }
+        if array.max()! - array.min()! >= 5.0{
+            return true
+        } else {
+            array = []
+            for time in times{
+                array.append(time[3])
+            }
+            if array.max()! - array.min()! >= 5.0{
+                return true
+            }
+            return false
+        }
+    }
+    
+    
+    func getRandomInt(range: Int)->Int{
+        return Int(arc4random_uniform(UInt32(range)))
+    }
+    func makeString(length: Int)->String{
+        var s = ""
+        let numberChars = chars.count
+        for _ in 0..<length{
+            s.append(chars[getRandomInt(range: numberChars)])
+        }
+        return s;
+    }
+    func makeList(size: Int)->[String]{
+        stringList = [String]()
+        for _ in 0..<size{
+            stringList.append(makeString(length: 10))
+        }
+        return stringList
+    }
+    func average(times: [[Double]]) -> [Double]{
+        var averages = Array(repeating: 0.0, count: 6)
+        for time in times{
+            for nums in 0..<time.count{
+                averages[nums] += time[nums]
+            }
+        }
+        return averages.map{$0/Double(times.count)}
+    }
+    func timeTest(elements: Int)->[Double]{
+        var result = [Double]()
+        makeList(size: MAX_SIZE)
+        print("String List completed")
+        var key = " "
+        var value = " "
+        var index = 0
+        map = LinearMap<String, String>() //defaults to LinearMap
+        if mapType == "Binary"{
+            map = BinaryMap<String, String>()
+        } else if mapType == "Hash"{
+            map = HashMap<String, String>()
+        } else if mapType != "Linear"{
+            print("Map needs to be either Hash, Binary, or Linear: defaulting to Linear.")
+        }
+        benchmarkMessage(mess: "\(elements) set operations")
+        result += [elapsedTimes().ms, elapsedTimes().sec, elapsedTimes().tenthssec]
+        
+        print("Benchmarking Gets")
+        startTimer()
+        for _ in 0..<elements{
+            index = getRandomInt(range: MAX_SIZE / 2)
+            key = stringList[index]
+            value = map.get(key) as! String
+        }
+        stopTimer()
+        benchmarkMessage(mess: "\(elements) set operations")
+        result += [elapsedTimes().ms, elapsedTimes().sec, elapsedTimes().tenthssec]
+        
+        return result
+    }
+    
+    
+    func doBigO(){
+        let initialElementCount = getRandomInt(range: MAX_SIZE / 2)
+        var elementCounts = [Int]()
+        var getTimes = [Int]()
+        var setTimes = [Int]()
+        var elements: Int = 0
+        var counter: Int = 0
+        while elements <= MAX_SIZE{
+            elements = initialElementCount + (MAX_SIZE / 20)*counter
+            elementCounts.append(elements)
+            getTimes.append(Int(timeTest(elements: elements)[0]))
+            setTimes.append(Int(timeTest(elements: elements)[3]))
+            counter += 1
+        }
+        let factor = times[1] / times[0]
+        var linearRel: Int = 0
+        var constantRel: Int = 0
+        for i in 0..<elementCounts.count - 1{
+            if Double(getTimes[i] * factor) <= Double(getTimes[i+1]) - 0/*(error buffer)*/ && Double(getTimes[i] * factor) <= Double(getTimes[i+1]) + 0/*(error buffer)*/{
+                linearRel += 1
+            }
+        }
+        if linearRel == elementCounts.count{
+            print("Get Big O: O(n)")
+        }
+        if Double(getTimes[i]) == Double(getTimes[i+1]){
+            constantRel += 1
+        }
+        if constantRel == elementCounts.count{
+            print("Get Big O: O(c)")
+        }
+    }
+        //do the bigO calling here
+        func doTest(rep: Int = 3){
+            var results = [[Double]]()
+            print("Running the benchmark \(rep) times. We recommend over 3.")
+            for _ in 0..<rep{
+                results.append(timeTest(elements: ))
+            }
+            if !tooVaried(times: results){
+                print("Average times: \(average(times: results))")
+                print("Individual runs:")
+                for result in results{
+                    print(result)
+                }
+                print("Collisions: \(map.getNumberCollisions())")
+            }
+            
+        }
+    }
