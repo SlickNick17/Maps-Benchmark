@@ -120,10 +120,17 @@ public class BenchMark{
         for _ in 0..<rep{
             results.append(benchmark())
         }
-        print("Average times: \(average(times: results))")
-        print("Collisions: map.getNumberCollisions()")
+        if !tooVaried(times: results){
+            print("Average times: \(average(times: results))")
+            print("Individual runs:")
+            for result in results{
+                print(result)
+            }
+            print("Collisions: \(map.getNumberCollisions())")
+        }
         
     }
     //reset stringList?
     // make generic?
 }
+
